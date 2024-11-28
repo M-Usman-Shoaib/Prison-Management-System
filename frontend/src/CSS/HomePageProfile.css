@@ -1,0 +1,18 @@
+/* Add this to your CSS file */
+.homePageStyles {
+    /* Add styles specific to the home page */
+    /* For example, reduce font sizes, adjust image sizes, etc. */
+  
+    /* Reduce font size for h5 tag */
+    .card-title {
+      font-size: 10px;
+    }
+  
+    /* Reduce font size for p tag */
+    .card-text {
+      font-size: 7px;
+    }
+  }
+  
+  /* Add any other global styles here */
+  
