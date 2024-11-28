@@ -15,15 +15,12 @@ const AddCellForm = () => {
     const token = useSelector((state) => state.auth.token);
 
     useEffect(() => {
-        // Check if token is missing and navigate to /login
         if (!token) {
             navigate("/login");
-        } 
-    }, [token, navigate]); // Ensure the effect runs when the token changes
+        }
+    }, [token, navigate]);
 
-    // Fetch available prisons
     useEffect(() => {
-
         const fetchPrisons = async () => {
             try {
                 const response = await axios.get('http://localhost:3000/prison/getAll', {
@@ -32,7 +29,6 @@ const AddCellForm = () => {
                     },
                 });
 
-                // Filter prisons with available capacity for cells
                 const availablePrisons = response.data.filter(prison => 
                     !prison.cellBlocks || prison.cellBlocks.length < prison.capacity
                 );
@@ -71,16 +67,18 @@ const AddCellForm = () => {
                     },
                 });
 
-                // Handle success
                 setAlertMessage('Cell added successfully.');
                 setShowSuccessAlert(true);
                 formik.resetForm();
             } catch (error) {
-                // Handle error
-                if (error.response && error.response.data) {
-                    setAlertMessage('Failed to add cell. ' + error.response.data.msg);
+                if (error.response && error.response.data && error.response.data.msg) {
+                    if (error.response.data.msg.includes('Cell ID already exists')) {
+                        formik.setFieldError('cellID', 'Cell ID already exists.');
+                    } else {
+                        setAlertMessage(error.response.data.msg);
+                    }
                 } else {
-                    setAlertMessage('Failed to add cell. Please try again.');
+                    setAlertMessage('Failed to update cell. Please try again.');
                 }
                 setShowErrorAlert(true);
             }
@@ -156,7 +154,7 @@ const AddCellForm = () => {
                         </option>
                         {prisons.map((prison) => (
                             <option key={prison._id} value={prison._id}>
-                                {prison.location} (Available Capacity: {prison.capacity - (prison.cellBlocks?.length || 0)})
+                                Prison ID: {prison.prisonID} (Available Capacity: {prison.capacity - (prison.cellBlocks?.length || 0)})
                             </option>
                         ))}
                     </select>
@@ -167,8 +165,8 @@ const AddCellForm = () => {
                     <button className="brownButton mt-2 mb-2" type="submit" disabled={prisons.length === 0}>
                         {prisons.length > 0 ? 'Add Cell' : 'No Prisons Available'}
                     </button>
-                    <br></br>
-                    <br></br>
+                    <br />
+                    <br />
                     <button className="brownButton mt-3" onClick={() => navigate('/cells')}>
                         Back to Cell List
                     </button>

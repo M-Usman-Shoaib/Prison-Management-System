@@ -18,7 +18,7 @@ router.post(
     ],
 
     passport.authenticate("jwt", { session: false }),
-    
+
     async (req, res) => {
 
         const errors = validationResult(req);
@@ -104,6 +104,13 @@ router.put("/update/:id",
                 return res.status(404).json({ msg: "Prison not found" });
             }
 
+            if (prisonID) {
+                const existingPrison = await Prison.findOne({ prisonID });
+                if (existingPrison && existingPrison.id !== req.params.id) {
+                    return res.status(400).json({ msg: "Prison ID already exists" });
+                }
+            }
+
             prison = await Prison.findByIdAndUpdate(
                 req.params.id,
                 { $set: prisonFields },
@@ -128,7 +135,7 @@ router.delete("/delete/:id",
             // if (!req.session.user || req.session.user.role !== 'admin') {
             //     return res.status(401).json({ error: "Unauthorized" });
             // }
-            
+
             const prison = await Prison.findById(req.params.id);
             if (!prison) {
                 return res.status(404).json({ msg: "Prison not found" });

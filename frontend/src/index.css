@@ -1,7 +1,11 @@
 body,
 html {
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
+
+
 
 /* navbar color */
 .navbarBackground {
@@ -134,12 +138,16 @@ html {
 /* Landing page */
 
 .background {
-  background-image: linear-gradient(103.24deg,
+  background-image: linear-gradient(200.24deg,
       rgba(0, 8, 29, 0.3) 10.83%,
       rgba(0, 8, 29, 0.3) 60.1%),
-    url("./images/background.png");
-  min-height: 91vh;
+    url("./background.jpg");
+  min-height: 100vh;
   /* Adjust the min-height based on your design */
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  margin: 0; /* Remove gap */
+  padding: 0;
   background-size: cover;
   background-position: center;
 }
@@ -393,8 +401,8 @@ select.error-input:focus {
   color: black;
 }
 
-.container{
-  margin-top: 20px;
+.container {
+  margin-top: 0px;
 }
 
 /* Add this to your CSS file */

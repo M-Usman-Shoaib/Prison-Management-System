@@ -12,10 +12,10 @@ router.post(
     "/add",
     passport.authenticate("jwt", { session: false }),
     [
-        check("cellID", "Block name is required").not().isEmpty(),
-        check("capacity", "Capacity is required").isNumeric(),
-        check("securityLevel", "Security level is required").isIn(["Low", "Medium", "High", "Maximum"]),
-        check("prison", "Prison ID is required").not().isEmpty(),
+        check("cellID", "Cell ID is required").notEmpty(),
+        check("capacity", "Capacity must be a number").isNumeric(),
+        check("securityLevel", "Invalid security level").isIn(["Low", "Medium", "High", "Maximum"]),
+        check("prison", "Invalid prison ID").isMongoId(),
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -23,13 +23,13 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // // Check if prison with the same prisonID already exists
-        // let existingCell = await Cell.findOne({cellID});
-        // if (existingCell) {
-        //     return res.status(400).json({ msg: "Cell with this ID already exists" });
-        // }
-
         const { cellID, capacity, securityLevel, prison } = req.body;
+
+        // Check if prison with the same cellID already exists
+        let existingCell = await Cell.findOne({ cellID: req.body.cellID });
+        if (existingCell) {
+            return res.status(400).json({ msg: "Cell ID already exists" });
+        }
 
         // Check if the prison exists
         const prisonExist = await Prison.findById(prison);
@@ -55,10 +55,11 @@ router.post(
             res.json(cell);
         } catch (error) {
             pino.error(error);
-            res.status(500).send("Server Error");
+            res.status(500).json({ success: false, message: "Server Error" });
         }
     }
 );
+
 
 // Get all cell blocks
 router.get(
@@ -96,10 +97,11 @@ router.get("/get/:id",
 router.put("/update/:id",
     passport.authenticate("jwt", { session: false }),
     async (req, res) => {
-        const { blockName, capacity, securityLevel, prison } = req.body;
+        const { cellID, capacity, securityLevel, prison } = req.body;
+
 
         const cellBlockFields = {};
-        if (blockName) cellBlockFields.blockName = blockName;
+        if (cellID) cellBlockFields.cellID = cellID;
         if (capacity) cellBlockFields.capacity = capacity;
         if (securityLevel) cellBlockFields.securityLevel = securityLevel;
         if (prison) cellBlockFields.prison = prison;
@@ -114,6 +116,13 @@ router.put("/update/:id",
             let cellBlock = await Cell.findById(req.params.id);
             if (!cellBlock) {
                 return res.status(404).json({ msg: "Cell Block not found" });
+            }
+
+            if (cellID) {
+                const existingCell = await Cell.findOne({ cellID });
+                if (existingCell && existingCell.id !== req.params.id) {
+                    return res.status(400).json({ msg: "Cell ID already exists" });
+                }
             }
 
             // Update the cell block

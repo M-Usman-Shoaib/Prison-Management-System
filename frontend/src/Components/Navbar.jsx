@@ -6,8 +6,8 @@ import { logout } from '../Redux Toolkit/authSlice';
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const hiddenPaths = ['/signup', '/login'];
-  const isNavbarHidden = hiddenPaths.includes(location.pathname);
+  // const hiddenPaths = ['/signup', '/login'];
+  // const isNavbarHidden = hiddenPaths.includes(location.pathname);
 
   // Access authentication state from Redux store
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -23,9 +23,9 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  if (isNavbarHidden) {
-    return null;
-  }
+  // if (isNavbarHidden) {
+  //   return null;
+  // }
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark navbarBackground">

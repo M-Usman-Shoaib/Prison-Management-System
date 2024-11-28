@@ -9,7 +9,8 @@ import axios from 'axios';
 const EditPrisonForm = () => {
     const { id } = useParams(); // Get the prison ID from URL
     const navigate = useNavigate(); // To navigate after updating
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertType, setAlertType] = useState('success'); // 'success' or 'error'
     const [alertMessage, setAlertMessage] = useState('');
     const [prisonData, setPrisonData] = useState(null);
     const token = useSelector((state) => state.auth.token);
@@ -22,26 +23,26 @@ const EditPrisonForm = () => {
     }, [token, navigate]); // Ensure the effect runs when the token changes
 
     useEffect(() => {
-        // Fetch the prison data using the ID
+        // Fetch prison data using the ID
         const fetchPrisonData = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/prison/get/${id}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                // Check for a successful response
+                const response = await axios.get(`http://localhost:3000/prison/get/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
                 if (response.status === 200) {
                     setPrisonData(response.data);
                 } else {
                     setAlertMessage('Failed to fetch prison data.');
-                    setShowSuccessAlert(true); // Keeping success alert for consistency, can remove if unnecessary
+                    setAlertType('error');
+                    setShowAlert(true);
                 }
             } catch (error) {
                 setAlertMessage('Failed to fetch prison data.');
-                setShowSuccessAlert(true); // Keeping success alert for consistency, can remove if unnecessary
+                setAlertType('error');
+                setShowAlert(true);
             }
         };
 
@@ -65,7 +66,7 @@ const EditPrisonForm = () => {
                 .oneOf(['Low', 'Medium', 'High', 'Maximum'], 'Invalid security level')
                 .required('Security level is required'),
         }),
-        enableReinitialize: true, // This ensures the form updates when prisonData changes
+        enableReinitialize: true,
         onSubmit: async (values) => {
             try {
                 const response = await axios.put(`http://localhost:3000/prison/update/${id}`, values, {
@@ -74,21 +75,31 @@ const EditPrisonForm = () => {
                     },
                 });
 
-                // Check for a successful response
                 if (response.status === 200) {
                     setAlertMessage('Prison updated successfully.');
-                    setShowSuccessAlert(true);
-                    // Navigate back to the prison list or detail page
-                    setTimeout(() => {
-                        navigate('/prisons'); // Update the navigation as needed
-                    }, 2000);
+                    setAlertType('success');
+                    setShowAlert(true);
+                    setTimeout(() => navigate('/prisons'), 2000);
                 } else {
                     setAlertMessage('Failed to update prison.');
-                    setShowSuccessAlert(true); // Success alert for consistency
+                    setAlertType('error');
+                    setShowAlert(true);
                 }
             } catch (error) {
-                setAlertMessage('Failed to update prison. Please try again.');
-                setShowSuccessAlert(true); // Success alert for consistency
+                if (error.response && error.response.data && error.response.data.msg) {
+                    if (error.response.data.msg.includes('Prison ID already exists')) {
+                        formik.setFieldError('prisonID', 'Prison ID already exists.');
+                        setAlertMessage('Prison ID already exists.');
+                        setAlertType('error');
+                        setShowAlert(true);
+                    } else {
+                        setAlertMessage(error.response.data.msg);
+                    }
+                } else {
+                    setAlertMessage('Failed to update prison. Please try again.');
+                }
+                setAlertType('error');
+                setShowAlert(true);
             }
         },
     });
@@ -99,8 +110,12 @@ const EditPrisonForm = () => {
 
     return (
         <div>
-            {showSuccessAlert && (
-                <Alert type="success" message={alertMessage} onClose={() => setShowSuccessAlert(false)} />
+             {showAlert && (
+                <Alert
+                    type={alertType}
+                    message={alertMessage}
+                    onClose={() => setShowAlert(false)}
+                />
             )}
             <div className="sign-up-container text-center mt-5 pt-5">
                 <form className="sign-up-form" onSubmit={formik.handleSubmit}>
