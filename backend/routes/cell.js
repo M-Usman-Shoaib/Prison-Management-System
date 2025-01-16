@@ -59,8 +59,6 @@ router.post(
         }
     }
 );
-
-
 // Get all cell blocks
 router.get(
     "/getAll",
@@ -81,10 +79,12 @@ router.get("/get/:id",
     passport.authenticate("jwt", { session: false }),
     async (req, res) => {
         try {
-            const cellBlock = await Cell.findById(req.params.id).populate("prison");
+            const cellBlock = await Cell.findById(req.params.id).populate("inmates");
+
             if (!cellBlock) {
                 return res.status(404).json({ msg: "Cell Block not found" });
             }
+
             res.json(cellBlock);
         } catch (error) {
             pino.error(error);

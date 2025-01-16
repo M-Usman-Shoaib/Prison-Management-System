@@ -23,13 +23,14 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Check if prison with the same prisonID already exists
-        let existingInmate = await Inmate.findOne({ inmateId });
-        if (existingInmate) {
-            return res.status(400).json({ msg: "Inmate with this ID already exists" });
-        }
-
+       
         const { inmateId, fullName, dateOfBirth, crimeCommitted, cellBlock, medicalHistory } = req.body;
+
+         // Check if prison with the same prisonID already exists
+         let existingInmate = await Inmate.findOne({ inmateId });
+         if (existingInmate) {
+             return res.status(400).json({ msg: "Inmate with this ID already exists" });
+         }
 
         try {
             // Check if CellBlock exists
@@ -60,6 +61,17 @@ router.post(
             });
 
             await inmate.save();
+
+            await Cell.findByIdAndUpdate
+            (
+                cellBlock,
+                {
+                    $push: { inmates: inmate._id },
+                }
+            );
+            
+
+
             res.json(inmate);
         } catch (error) {
             console.error(error);

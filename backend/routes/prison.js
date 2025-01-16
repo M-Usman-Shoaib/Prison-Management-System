@@ -1,6 +1,6 @@
 const express = require("express");
 const Prison = require("../models/Prison");
-const CellBlock = require("../models/Cell");
+const Cell = require("../models/Cell");
 const Inmate = require("../models/Inmate");
 const pino = require("pino")();
 const passport = require("passport");
@@ -67,16 +67,19 @@ router.get(
     }
 );
 
-// Get a single prison
+// Get a single prison and its cells
 router.get("/get/:id",
     passport.authenticate("jwt", { session: false }),
     async (req, res) => {
         try {
-
+            // Find the prison by ID and populate its cellBlocks
             const prison = await Prison.findById(req.params.id).populate('cellBlocks');
+            
             if (!prison) {
                 return res.status(404).json({ msg: "Prison not found" });
             }
+
+            // Add cells to the response
             res.json(prison);
         } catch (error) {
             pino.error(error);
@@ -84,6 +87,7 @@ router.get("/get/:id",
         }
     }
 );
+
 
 // Update a prison
 router.put("/update/:id",
